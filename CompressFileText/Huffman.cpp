@@ -88,7 +88,6 @@ HuffData ReadFileText(FILE* p)
 					}
 					rowtemp++;
 				}
-				//cout << "ROW : = " << rowtemp << endl;
 				haf.wei[rowtemp] += 1;
 			}
 		}
@@ -96,38 +95,6 @@ HuffData ReadFileText(FILE* p)
 
 
 	}
-
-	//char ch = fgetc(p);
-
-//while (ch != EOF)
-//{
-//	
-//	if (IsExist(ch, s) == false)
-//	{
-//		s.push_back(ch);
-//		haf.wei[row] = 1;
-//		haf.s[row++] = ch;
-
-//	}
-//	else
-//	{
-//		int rowtemp = 0;
-//		for (vector<char>::iterator iter_name = s.begin(); iter_name != s.end(); iter_name++)
-//		{
-//			if (ch == *iter_name)
-//			{
-//				break;
-//			}
-//			rowtemp++;
-//		}
-//		//cout << "ROW : = " << rowtemp << endl;
-//		haf.wei[rowtemp] += 1;
-//	}
-
-//	i++;
-//	cout << i << endl;
-//	ch = fgetc(p);
-//}
 	haf.s[row] = NULL;
 	return haf;
 
@@ -150,29 +117,30 @@ HuffData ReadFileBin(FILE* p)
 	int row = 0;
 
 
-	int i = 0;
 
 
 	int size = NumberOfCharFile(p);
 
+
+
 	rewind(p);
 
-	char* Memory = new char[size+1];
-	fread(Memory, sizeof(char), size, p);
-	puts(Memory);
-	cout << endl;
+	char* Memory = new char[size];
+	fread(Memory, sizeof(char) , size, p);
+	Memory[size] = '\0';
 	map<char, int> chars;
-	map<char, int>::iterator it;
-	for (int i = 0; i < strlen(Memory); i++) {
-		chars[Memory[i]]++;
-		
+
+	for (int k = 0; k < strlen(Memory); k++) 
+	{
+		chars[Memory[k]]++;
 	}
 	int Count = 0;
-	for (it = chars.begin(); it != chars.end(); it++)
+	for (map<char, int>::iterator it = chars.begin(); it != chars.end(); it++)
 	{
 		haf.s[Count] = it->first;
 		haf.wei[Count] = it->second;
-		cout << haf.s[Count] << " Va " << haf.wei[Count] << endl;
+		
+
 		Count++;
 	}
 
@@ -301,6 +269,7 @@ NODE* builfHuffmanTree(HuffData map, int size)
 		left = getNodeMin(hufftree);
 		right = getNodeMin(hufftree);
 
+	
 
 		root = newNode(' ', left->_freq + right->_freq);
 

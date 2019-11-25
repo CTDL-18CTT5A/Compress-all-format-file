@@ -1,6 +1,6 @@
 ﻿
 //
-#include"ComFileText.h"
+#include"CompressFile.h"
 
 #include<bitset>
 
@@ -10,19 +10,20 @@ int main()
 {
 	
 	//FILE* file = fopen("main.cpp", "rb");
-	//FILE* fileCompresss = fopen("InputCompress.txt", "wb");
+	//FILE* fileCompresss = fopen("InputCompress.huf", "wb");
 	//HuffData data = ReadFileBin(file);
+	//cout << "read complete" << endl;
 	//HuffMap map;
 	////int size = sizeof(arr) / sizeof(arr[0]);
 	//int size = strlen(data.s);
 	//HuffmanCompress(file  , fileCompresss,  map , data, size);
-	//cout << "YEAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH";
 
 	//fclose(fileCompresss);
 	//fclose(file);
 
 
-	FILE* header = fopen("InputCompress.txt", "rb");
+
+	FILE* header = fopen("InputCompress.huf", "rb");
 
 	FILE* out = fopen("ec.txt", "wb");
 	Decode(header, out);

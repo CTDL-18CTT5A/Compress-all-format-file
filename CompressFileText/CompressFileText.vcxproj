@@ -125,13 +125,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="ComFileBin.h" />
-    <ClInclude Include="ComFileText.h" />
+    <ClInclude Include="CompressFile.h" />
+    <ClInclude Include="CompressFolder.h" />
     <ClInclude Include="Huffman.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ComFileBin.cpp" />
-    <ClCompile Include="ComFileText.cpp" />
+    <ClCompile Include="CompressFile.cpp" />
+    <ClCompile Include="CompressFolder.cpp" />
     <ClCompile Include="Huffman.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

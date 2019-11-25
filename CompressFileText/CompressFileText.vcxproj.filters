@@ -15,27 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ComFileText.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Huffman.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComFileBin.h">
+    <ClInclude Include="CompressFolder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompressFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ComFileText.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Huffman.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ComFileBin.cpp">
+    <ClCompile Include="CompressFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CompressFolder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
