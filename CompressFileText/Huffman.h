@@ -32,6 +32,9 @@ HuffData ReadFileText(FILE* p);
 
 HuffData ReadFileBin(FILE* p);
 
+HuffData ReadFileExe(FILE* p);
+
+
 
 NODE* newNode(char data, int freq);
 

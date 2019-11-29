@@ -1,9 +1,11 @@
 ﻿#include<iostream>
 #include<vector>
 #include<sstream>
+#include<fstream>
 #include<bitset>
 #include<map>
 #include"Huffman.h"
+#include <iterator>
 using namespace std;
 NODE* newNode(char data, int freq)
 {
@@ -128,8 +130,8 @@ HuffData ReadFileBin(FILE* p)
 	char* Memory = new char[size];
 	fread(Memory, sizeof(char) , size, p);
 	Memory[size] = '\0';
-	map<char, int> chars;
 
+	map<char, int> chars;
 	for (int k = 0; k < strlen(Memory); k++) 
 	{
 		chars[Memory[k]]++;
@@ -144,12 +146,69 @@ HuffData ReadFileBin(FILE* p)
 		Count++;
 	}
 
-	
 	haf.s[Count] = '\0';
 	return haf;
 
 }
 
+
+
+//Read data file exe
+vector<char> readfile(const char* filename)
+{
+	ifstream infile(filename, ios::binary);
+	vector<char> result;
+	copy(istream_iterator<char>(infile),
+		istream_iterator<char>(),
+		back_inserter(result));
+	return result;
+}
+
+
+HuffData ReadFileExe(FILE* p)
+{
+	if (p == NULL)
+	{
+		cout << "Khong the doc file";
+		exit(0);
+	}
+	HuffData haf;
+	long long n = 500;
+	rewind(p);
+	haf.s = new char[n];
+	haf.wei = new int[n];
+
+
+
+	int size = NumberOfCharFile(p);
+
+
+	rewind(p);
+
+	vector<char> data = readfile("test.exe");
+	cout << data.size() << endl;//how do i edit the data read from exe file?
+
+	map<char, int> chars;
+	for (int k = 0; k < data.size(); k++)
+	{
+		chars[data[k]]++;
+	}
+	int Count = 0;
+	for (map<char, int>::iterator it = chars.begin(); it != chars.end(); it++)
+	{
+		haf.s[Count] = it->first;
+		haf.wei[Count] = it->second;
+
+		cout << haf.s[Count] << " Va " << haf.wei[Count] << endl;
+
+
+		Count++;
+	}
+
+
+	haf.s[Count] = '\0';
+	return haf;
+}
 
 HuffmanTree* InitHuffTree(int size)
 {

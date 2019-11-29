@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include"CompressFile.h"
-
+#include <stdio.h>
 #include<iostream>
 #include<vector>
 #include<sstream>
@@ -26,16 +26,17 @@ void ArrayOutput(HuffMap &map , int index , int a[], int n)
 
 }
 
+
+
 //Duyệt cây lưu dữ liệu vào map
-void CompressFile(HuffMap &map , NODE* root, int arr[], int top)
+void CompressFile(HuffMap &map , NODE* root, int arr[], int top , int &index)
 {
-	static int index = 0;
 	// Assign 0 to left edge and recur 
 	if (root->pLeft) 
 	{
 
 		arr[top] = 0;
-		CompressFile(map ,root->pLeft, arr, top + 1);
+		CompressFile(map ,root->pLeft, arr, top + 1,index);
 	}
 
 	// Assign 1 to right edge and recur 
@@ -43,7 +44,7 @@ void CompressFile(HuffMap &map , NODE* root, int arr[], int top)
 	{
 
 		arr[top] = 1;
-		CompressFile(map,  root->pRight, arr, top + 1);
+		CompressFile(map,  root->pRight, arr, top + 1, index);
 	}
 
 	
@@ -71,34 +72,60 @@ int convertBinaryToDecimal(long long n)
 	return decimalNumber;
 }
 
-
-//Lưu đống dữ liệu vào map
-void HuffmanCompress(FILE *fileInput , FILE *fileOut , HuffMap &map , HuffData  data, int size)
+string getType(char* s)
 {
+	string type;
+	for (int i = strlen(s) - 1; i >= 0; i--)
+	{
+		if (s[i] == '.')
+			break;
 
+		type += s[i];
 
+	}
+	reverse(type.begin(), type.end());
+	return type;
+}
+
+char* ToCharArray(string name)
+{
+	char* fileName = new char[name.length() + 1];
+	strcpy(fileName, name.c_str());
+	return fileName;
+}
+//Lưu đống dữ liệu vào map
+void HuffmanCompress(FILE *fileInput , FILE *fileOut , HuffMap &map , HuffData  data, int size , char*nameFile)
+{
 	// Construct Huffman Tree 
 	NODE* root = builfHuffmanTree(data, size);
 	// Print Huffman codes using 
 	// the Huffman tree built above 
-	int arr[500];
+	int arr[1000];
 	long long top = 0;
 	map.BitArray = new int* [size];
 
 	map.charater = new char[size];
 	
+	string typeFile = getType(nameFile);
+	
+	char* type = ToCharArray(typeFile);
+	type[strlen(type)] = '\0';
 
-	CompressFile(map , root, arr, top);
+	int index = 0;
+	CompressFile(map , root, arr, top , index);
+	
+	//Write type
+	char soluongDuoi = char(strlen(type) + 48);
+	fwrite(&soluongDuoi, sizeof(char), 1, fileOut);
+	fwrite(type, sizeof(char), strlen(type), fileOut);
 
 	WriteHeaderFile(fileOut, data);
-
 	rewind(fileInput);
-
 	//Lưu vào file
 	char ch;
 	fread(&ch, sizeof(char), 1, fileInput);
 
-	cout << "DEBUG" << endl;
+
 
 	//Dem so luong cac bit da ma hoa
 	long long countBit8 = 0;
@@ -109,12 +136,14 @@ void HuffmanCompress(FILE *fileInput , FILE *fileOut , HuffMap &map , HuffData  
 	long long countBit = 0;
 	long long sumBitOut = 0;
 	char bit8[9];
+
 	while (!feof(fileInput))
 	{
+		
 		int j = 0;
 		for (int i = 0; i < size; i++)
 		{
-
+			
 			if (ch == map.charater[i])
 			{
 				while (map.BitArray[i][j] != 2)
@@ -131,7 +160,6 @@ void HuffmanCompress(FILE *fileInput , FILE *fileOut , HuffMap &map , HuffData  
 						fwrite(&textOutput, sizeof(char), 1, fileOut);
 						countBit = 0;
 						countBit8 += 8;
-						
 					}
 
 					j++;
@@ -143,7 +171,7 @@ void HuffmanCompress(FILE *fileInput , FILE *fileOut , HuffMap &map , HuffData  
 		}
 		fread(&ch, sizeof(char), 1, fileInput);
 	}
-
+	
 	int soBitLe = 0;
 	for (int z = 0; z < countBit; z++)
 	{
@@ -153,10 +181,15 @@ void HuffmanCompress(FILE *fileInput , FILE *fileOut , HuffMap &map , HuffData  
 	}
 	char bl = char(soBitLe + 48);
 	fwrite(&bl, sizeof(char), 1, fileOut);
+	
+	/*delete root;
+	delete[] map.BitArray;
+	delete[] map.charater;
+	delete type;
+	rewind(fileInput);*/
 
 
 	//fprintf(fileOut, "%d", soBitLe);
-
 
 	
 }
@@ -170,7 +203,7 @@ void WriteHeaderFile(FILE* Output, HuffData data)
 	//fprintf(Output, "%d", size);
 	//fwrite("$", 1, 1, Output);
 	fprintf(Output, "%d", size);
-	fprintf(Output, "$");
+	fprintf(Output, "†");
 
 
 	for (int i = 0; i < size; i++)
@@ -180,9 +213,9 @@ void WriteHeaderFile(FILE* Output, HuffData data)
 		fprintf(Output, "%c", data.s[i]);
 		fprintf(Output, "%d", data.wei[i]);
 		if (i != size - 1)
-			fprintf(Output, "$");
+			fprintf(Output, "†");
 		else
-			fprintf(Output, "~");
+			fprintf(Output, "˜");
 	}
 
 }
@@ -195,16 +228,21 @@ void ReadHeaderFile(FILE* fileIN, HuffData& data)
 	//Get size
 	int size = 0;
 
+
+	//get Type
+
+
 	fread(&ch, 1, 1, fileIN);
 
 
 
-	while (ch!= '$')
+	while (ch!= '†')
 	{
 		int t = int(ch - 48);
 		size = size * 10 + t;
 		fread(&ch, 1, 1, fileIN);
 	}
+	cout << "Size = " << size << endl;
 	data.s = new char[size];
 	data.wei = new int[size];
 
@@ -212,7 +250,7 @@ void ReadHeaderFile(FILE* fileIN, HuffData& data)
 	//Save vào data
 	int i = 0;
 	int maxBit = 0;
-	while (ch != '~')
+	while (ch != '˜')
 	{
 		/*if (ch == '\n')
 			ch = getc(fileIN);*/
@@ -221,21 +259,27 @@ void ReadHeaderFile(FILE* fileIN, HuffData& data)
 		//Save wei
 		int wei = 0;
 		fread(&ch, 1, 1, fileIN);
-		while (ch != '$')
+		while (ch != '†')
 		{
 			int t = int(ch - 48);
 			wei = wei * 10 + t;
 			fread(&ch, 1, 1, fileIN);
-			if (ch == '~')
+			if (ch == '˜')
+			{
+				cout << ftell(fileIN) << endl;
+
 				break;
+			}
+
 		}
 		data.wei[i] = wei;
-
+		//cout << data.wei[i] << endl;
 
 		i++;
-		if (ch == '~')
+		if (ch == '˜')
 			break;	
 		fread(&ch, 1, 1, fileIN);
+
 	}
 	data.s[i] = '\0';
 }
@@ -250,6 +294,14 @@ long long getNumberOfFileAtIndex(FILE* in, int index)
 	fseek(in, 0, SEEK_END);
 	long long maxsize = ftell(in);
 	return maxsize - thisPoint;
+
+}
+
+long long getNumberOfFileAtIndex(FILE* in, int index , int posEnd)
+{
+	fseek(in, index, SEEK_SET);
+	int thisPoint = ftell(in);
+	return posEnd - thisPoint;
 
 }
 
@@ -296,12 +348,45 @@ void ConvertToBinArray(FILE* in, int indexStart, int* a , long long &k , long lo
 	}
 }
 
+void ConvertToBinArrayOfFolder(FILE* in, int indexStart, int* a, long long& k, long long viTriLe , long long endpos)
+{
+	long long EndFile = endpos;
+	fseek(in, indexStart, SEEK_SET);
+	int count = ftell(in);
+	/////////////DANH DAU
+	char ch;
+	fread(&ch, sizeof(char), 1, in);
+	while (count != viTriLe)
+	{
+		for (int i = 7; i >= 0; --i)
+		{
+			char s = ((ch & (1 << i)) ? '1' : '0');
+			s -= 48;
+			a[k] = s;
+			k++;
+		}
+		fread(&ch, sizeof(char), 1, in);
+
+		count++;
+	}
+
+	while (count != EndFile)
+	{
+
+		a[k] = int(ch - 48);
+		k++;
+		fread(&ch, sizeof(char), 1, in);
+		count++;
+	}
+	
+	cout << "Ftell : " << ftell(in) << endl;
+}
 
 
 void Decode(FILE* in, FILE* out)
 {
+	long long curpos = ftell(in);
 	//Lay Bit Le
-	
 	//______________Gán vtLe để lấy ra số bit lẻ_______________
 	long long vtLe = VitriLe(in);
 	fseek(in, vtLe, SEEK_SET);
@@ -314,7 +399,7 @@ void Decode(FILE* in, FILE* out)
 	for(int z = 0; z < SoLuongBitLe; z++)
 		vtLe -= 1;
 
-	rewind(in);
+	fseek(in, curpos, SEEK_SET);
 
 
 	HuffData data;
@@ -329,7 +414,7 @@ void Decode(FILE* in, FILE* out)
 
 	int* bit = new int[sizeOfBit];
 	long long n = 0;
-	rewind(in);
+	//rewind(in);
 	fseek(in, StartIndex, SEEK_SET);
 
 
@@ -348,7 +433,8 @@ void Decode(FILE* in, FILE* out)
 	int arr[500];
 	long long top = 0;
 
-	CompressFile(map, root, arr, top);
+	int index = 0;
+	CompressFile(map, root, arr, top, index);
 
 	//Nếu cây huffman không tồn tại(Tức chỉ có 1 phần tử trong file)
 	if (size == 1)
@@ -400,6 +486,398 @@ void Decode(FILE* in, FILE* out)
 			}
 		}
 	}
+
+
+
+
+
+
+}
+
+
+
+void EncodeFile()
+{
+	string namefile;
+	cout << "Nhap vao ten file muon nen : ";
+	cin >> namefile;
+
+	string DuoiFile;
+	int pos = namefile.find(".")+1;
+	DuoiFile = namefile.substr(pos, namefile.size());
+
+	FILE* file = fopen(ToCharArray(namefile), "rb");
+	FILE* fileCompresss = fopen("InputCompress.huf", "wb");
+	HuffData data;
+	if (DuoiFile == "exe")
+	{
+		data = ReadFileExe(file);
+	}
+	else
+	{
+		data = ReadFileBin(file);
+	}
+	cout << "read complete" << endl;
+	HuffMap map;
+	int size = strlen(data.s);
+	HuffmanCompress(file, fileCompresss, map, data, size, ToCharArray(namefile));
+}
+
+void EncodeMultiFile(char *filename )
+{
+	string namefile;
+	
+	for (int i = 0; i < strlen(filename); i++)
+	{
+		namefile += filename[i];
+	}
+
+	string DuoiFile;
+	int pos = namefile.find(".") + 1;
+	DuoiFile = namefile.substr(pos, namefile.size());
+
+	FILE* file = fopen(filename, "rb+");
+	FILE* fileCompresss = fopen("InputCompress.huf", "ab+");
+	HuffData data;
+	if (DuoiFile == "exe")
+	{
+		data = ReadFileExe(file);
+	}
+	else
+	{
+		data = ReadFileBin(file);
+	}
+
+	HuffMap map;
+	int size = strlen(data.s);
+	HuffmanCompress(file, fileCompresss, map, data, size, filename);
+
+	/*fclose(file);
+	fclose(fileCompresss);*/
+	return;
+
+}
+
+void ExportFile()
+{
+	string namefile;
+	cout << "Nhap ten file can giai nen(.huf) : ";
+	cin >> namefile;
+	FILE* header = fopen(ToCharArray(namefile + ".huf"), "rb");
+
+	char NumberOfType;
+	fread(&NumberOfType, sizeof(char), 1, header);
+	int sz = int(NumberOfType - 48);
+	char* type = new char[sz];
+	fread(type, sizeof(char), sz, header);
+
+	string nameOut;
+	nameOut = namefile;
+	nameOut += ".";
+	//Cong them duoi vao
+	for (int i = 0; i < sz; i++)
+	{
+		nameOut += type[i];
+	}
+	cout << nameOut << endl;
+
+	FILE* out = fopen(ToCharArray(nameOut), "wb");
+	Decode(header, out);
+}
+
+void ExportFile(string filename)
+{
+
+
+	FILE* header = fopen(ToCharArray(filename + ".huf"), "rb");
+
+
+	//bo qua 2 byte dau tien trong file neu no la file dung mot minh
+	char pp;
+	fread(&pp, 1, 1, header);
+	fread(&pp, 1, 1, header);
+
+
+	char NumberOfType;
+	fread(&NumberOfType, sizeof(char), 1, header);
+	int sz = int(NumberOfType - 48);
+	char* type = new char[sz];
+	fread(type, sizeof(char), sz, header);
+
+	string nameOut;
+	nameOut = filename;
+	nameOut += ".";
+	//Cong them duoi vao
+	for (int i = 0; i < sz; i++)
+	{
+		nameOut += type[i];
+	}
+	cout << nameOut << endl;
+
+	FILE* out = fopen(ToCharArray(nameOut), "wb");
+	Decode(header, out);
+}
+
+
+#include"SupportOpenFolder.h"
+
+
+void EncodeFolder()
+{
+	char* FolderName;
+
+	vector<string> allName = GetAllNameFILE(FolderName);
+
+	//Ghi ra ten file can ne:
+
+	//Ghi ra so luong file da nen
+	FILE* fileCompresss = fopen("InputCompress.huf", "ab+");
+	fprintf(fileCompresss, "%d", allName.size());
+	fprintf(fileCompresss, "†");
+
+	fclose(fileCompresss);
+
+
+	for (int i = 0; i < allName.size(); i++)
+	{
+		char* s = ToCharArray(allName[i]);
+		EncodeMultiFile(s);
+		FILE* fileCompresss = fopen("InputCompress.huf", "ab+");
+		fwrite("|||", 3, 1, fileCompresss);
+		
+	}
+	_fcloseall();
+}
+
+void DecodeFolder(FILE* in, FILE* out, int vtLE)
+{
+	int curPos = ftell(in);
+
+	//______________Gán vtLe để lấy ra số bit lẻ_______________
+	long long vtLe = vtLE;
+	fseek(in, vtLe, SEEK_SET);
+	char ch[2];
+	ch[1] = '\0';
+	fread(ch, sizeof(char), 1, in);
+	int SoLuongBitLe = int(ch[0] - 48);
+
+	cout << "So luong bit le : " << SoLuongBitLe << endl;
+
+
+	//Sau khi lưu số lượng bit lẻ vì vtLe đang nằm ở cuối file , ta trừ đi số bit lẻ => ra đc vị trí số lẻ đầu tiên.
+	for (int z = 0; z < SoLuongBitLe; z++)
+		vtLe -= 1;
+
+	fseek(in, curPos, SEEK_SET);
+
+	cout << "cur pos : " << curPos << endl;
+
+	HuffData data;
+	ReadHeaderFile(in, data);
+
+
+
+	//____________Define max size of bit array_____________
+	int StartIndex = ftell(in);
+	long long sizeOfBit = getNumberOfFileAtIndex(in, StartIndex, vtLE) * 8;
+
+
+	int* bit = new int[sizeOfBit];
+	long long n = 0;
+
+	//fseek(in, curPos, SEEK_SET);
+	fseek(in, StartIndex, SEEK_SET);
+
+
+
+	//__________Chuyển kí tự về bit và lưu hết vào trong mảng bit____________
+	ConvertToBinArrayOfFolder(in, StartIndex, bit, n, vtLe, vtLE);
+	//Tiếp tục lưu các bia thừa.
+	cout << "Size of bit : " << sizeOfBit << endl;
+	int size = strlen(data.s);
+	//_________Tạo ra map dữ liệu____________
+
+	NODE* root = builfHuffmanTree(data, size);
+	HuffMap map;
+	map.BitArray = new int* [size]; //SS
+	map.charater = new char[size]; //SS
+	int arr[500];
+	long long top = 0;
+
+	int index = 0;
+	CompressFile(map, root, arr, top, index);
+
+	//Nếu cây huffman không tồn tại(Tức chỉ có 1 phần tử trong file)
+	if (size == 1)
+	{
+		int temp = 0;
+		while (temp < data.wei[0])
+		{
+			fprintf(out, "%c", data.s[0]);
+			temp++;
+		}
+		return;
+	}
+	cout << "____________________________" << endl;
+
+	//________Chuyển từ dãy bit sang string để dễ so sánh_________
+
+	string* BitArray = new string[size];
+	for (int i = 0; i < size; i++)
+	{
+		int j = 0;
+		while (map.BitArray[i][j] != 2)
+		{
+			char test = char(map.BitArray[i][j] + 48);
+			BitArray[i] += test;
+			j++;
+		}
+	}
+
+
+	//Bắt đầu so sánh và ghi ra file
+	string compare;
+	int byte = 0;
+	for (int i = 0; i < n; i++)
+	{
+		compare += char(bit[i] + 48);
+		for (int k = 0; k < size; k++)
+		{
+			if (compare == BitArray[k])
+			{
+				char op[2];
+				op[1] = '\0';
+				op[0] = map.charater[k];
+				fwrite(op, sizeof(char), 1, out);
+				byte++;
+				compare.clear();
+				break;
+			}
+		}
+	}
+
+	delete[] bit;
+	delete[] BitArray;
+	delete[] map.BitArray;
+	delete[] map.charater;
+
+	cout << "End tell : " << ftell(in) << endl;
+
+
+
+}
+
+
+
+vector<int> posStop(char* filename)
+{
+	char buff[4];
+	vector<int> pos;
+	FILE* fs = fopen(filename, "rb");
+	if (fs != NULL) {
+		if (3 == fread(buff, 1, 3, fs)) {
+			do {
+				if (_strnicmp(buff, "|||", 3) == 0)
+					pos.push_back(ftell(fs) - 4);
+				memmove(buff, buff + 1, 3);
+			} while (1 == fread(buff + 2, 1, 1, fs));
+		}
+	}
+	fclose(fs);
+
+	return pos;
+}
+
+
+//Export file ta chỉ cần đọc file cho tới khi gặp điểm quy ước thì dừng và xuất file đó ra , cứ như thế cho đến khi gặp điểm quy ước cuối cùng
+void ExportFolder()
+{
+
+
+	string namefile;
+	cout << "Nhap ten folder can giai nen : ";
+	cin >> namefile;
+
+	vector<int> posEnd = posStop(ToCharArray(namefile + ".huf"));
+
+	for (int i = 0; i < posEnd.size(); i++)
+	{
+		cout << "POS " <<  posEnd[i] << endl;
+	}
+	//Neu chi co duy nhat mot file tuc la size = 0;
+	if (posEnd.empty())
+	{
+		ExportFile(namefile);
+		return;
+	}
+
+	FILE* header = fopen(ToCharArray(namefile + ".huf"), "rb");
+
+
+
+
+	//lay so luong file
+	long long numberOfFile=0;
+	char ch;
+	fread(&ch, 1, 1, header);
+	while (ch != '†')
+	{
+		numberOfFile = numberOfFile * 10 + int(ch - 48);
+		fread(&ch, 1, 1, header);
+	}
+
+
+	if (posEnd.empty())
+	{
+		ExportFile(namefile);
+		return;
+	}
+	int curpos = ftell(header);
+
+
+	cout << "Number of file : " << numberOfFile << endl;
+
+	fseek(header, curpos, SEEK_SET);
+
+	//Lưu lại vị trí cũ để thư mục cuối cùng có thể mang ra dùng vì posEnd bị giới hạn
+	int OldPos = 0;
+
+	for (int i = 0; i < posEnd.size(); i++)
+	{
+
+
+		cout << "LAN THU " << i << endl;
+		char NumberOfType;
+		fread(&NumberOfType, sizeof(char), 1, header);
+		int sz = int(NumberOfType - 48);
+		char* type = new char[sz];
+		fread(type, sizeof(char), sz, header);
+
+		string nameOut;
+		nameOut = namefile;
+		nameOut += ".";
+		//Cong them duoi vao
+		for (int i = 0; i < sz; i++)
+		{
+			nameOut += type[i];
+		}
+		cout << nameOut << endl;
+
+		FILE* out = fopen(ToCharArray(nameOut), "wb");
+
+
+		DecodeFolder(header, out, posEnd[i]);
+
+		fclose(out);
+		
+
+		//Bo qua 3 byte ngan cach:
+		
+		char temp[4];
+		fread(temp, sizeof(char), 3, header);
+
+	}
+
 
 
 }
