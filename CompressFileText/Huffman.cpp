@@ -165,7 +165,7 @@ vector<char> readfile(const char* filename)
 }
 
 
-HuffData ReadFileExe(FILE* p)
+HuffData ReadFileExe(FILE* p , char * filename)
 {
 	if (p == NULL)
 	{
@@ -185,7 +185,7 @@ HuffData ReadFileExe(FILE* p)
 
 	rewind(p);
 
-	vector<char> data = readfile("test.exe");
+	vector<char> data = readfile(filename);
 	cout << data.size() << endl;//how do i edit the data read from exe file?
 
 	map<char, int> chars;
@@ -198,8 +198,6 @@ HuffData ReadFileExe(FILE* p)
 	{
 		haf.s[Count] = it->first;
 		haf.wei[Count] = it->second;
-
-		cout << haf.s[Count] << " Va " << haf.wei[Count] << endl;
 
 
 		Count++;

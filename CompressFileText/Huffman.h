@@ -32,7 +32,7 @@ HuffData ReadFileText(FILE* p);
 
 HuffData ReadFileBin(FILE* p);
 
-HuffData ReadFileExe(FILE* p);
+HuffData ReadFileExe(FILE* p, char* filename);
 
 
 
